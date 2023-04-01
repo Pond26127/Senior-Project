@@ -2,7 +2,7 @@ import { TopBar } from "../../components/Navigation/TopBar";
 import styled from "styled-components";
 import Typography from "@mui/material/Typography";
 import MainPicture from "../../assets/images/example_pic_mainpage.png";
-import { Alert, Divider, TextField } from "@mui/material";
+import { Alert, } from "@mui/material";
 import { CustomButton } from "../../components/Button/Button";
 import { Stack } from "@mui/system";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,8 @@ import { getSession } from "../../api/session";
 import { getMe } from "../../api/user";
 import socket from "../Socket/socket";
 import { Room } from "../Lobby";
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, TextField } from "@mui/material";
+
 
 
 const TitleText = styled(Typography)``;
@@ -119,6 +121,7 @@ export const MainPage: React.FC = () => {
   };
 
   const joinByRoomID = (event: React.MouseEvent<HTMLElement>) => {
+    
     event.stopPropagation();
     console.log("Join by roomId:", roomId);
     let user: User;
@@ -142,9 +145,112 @@ export const MainPage: React.FC = () => {
       }
     }
   };
+
+  const [isPublic, setIsPublic] = useState(false)
+  const [isPrivate, setIsPrivate] = useState(false)
+  const [openPDPA, setOpenPDPA] = useState(false);
+
+  const handleOpenPDPAPublic = () => {
+    setOpenPDPA(true);
+    setIsPublic(true);
+    setIsPrivate(false);
+  }
+  const handleOpenPDPAPrivate = () => {
+    setOpenPDPA(true);
+    setIsPrivate(true);
+    setIsPublic(false);
+  }
+  const handleClosePDPA = () => {
+    setOpenPDPA(false);
+  }
+
+  const navigateTo = (event: React.MouseEvent<HTMLElement>) => {
+    if (isPublic) {
+      event.stopPropagation();
+      if (name === "") {
+        alert("Required your nickname.");
+      } else if (email === "") {
+        alert("Required your email.")
+      } else if (!email.includes("@")) {
+        alert("Please check your email format again.")
+      }
+      else {
+        socket.emit("register", name, email);
+        socket.on("resultRegister", (user) => {
+          if (user == 1) {
+            alert("Your name is already used.")
+          }
+          else {
+            navigate("/lobby", { state: { user } });
+            setIsPrivate(false);
+            setIsPublic(false);
+          }
+        })
+
+      }
+    } else {
+      event.stopPropagation();
+      console.log("Submitted name:", name);
+      let user: User;
+      let room: Room;
+      if (name === "") {
+        alert("Required your nickname.");
+      } else if (email === "") {
+        alert("Required your email.");
+      } else if (!email.includes("@")) {
+        alert("Please check your email format again.")
+      }
+      else {
+        socket.emit("register", name, email);
+        socket.on("resultRegister", (user) => {
+          if (user == 1) {
+            alert("Your name is already used.")
+          }
+          else {
+            socket.emit("createRoom", user.name + "'s Private Room", true);
+            socket.emit("joinRoom", user.roomId);
+            socket.on("room", (roomData) => {
+              room = roomData;
+              console.log(user)
+              navigate("/room", { state: { room, user } });
+              setIsPrivate(false);
+              setIsPublic(false);
+            });
+          }
+        })
+      }
+    }
+  }
+
   return (
     <>
       <TopBar userState={""} roomState={""} />
+      <> <Dialog
+        open={openPDPA}
+        onClose={handleClosePDPA}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <DialogTitle id="responsive-dialog-title">
+          {"ข้อกำหนดและเงื่อนไข"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ข้อกำหนดและเงื่อนไขฉบับนี้ ถือเป็นข้อตกลงระหว่างผู้ให้บริการ "Virtual Working and Communicate Space" กับผู้รับบริการ 
+            ข้าพเจ้าเข้าใจดีว่า ผู้ให้บริการจะเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้าเพื่อวัตถุประสงค์ในการให้บริการตามสัญญานี้
+            การบริการฟังก์ชั่นต่าง ๆ ของผู้ให้บริการแก่ข้าพเจ้า รวมถึงวัตถุประสงค์อื่นๆ ตามที่ผู้ให้บริการเห็นสมควร
+            ข้าพเจ้ารับทราบดีกว่า หากข้าพเจ้าไม่ตกลงยอมรับข้อกำหนดและเงื่อนไขนี้ ผู้ให้บริการสงวนสิทธิไม่ให้บริการแก่ข้าพเจ้าได้
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button  onClick={handleClosePDPA}>
+            Disagree
+          </Button>
+          <Button onClick={navigateTo}>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      </>
       <Body>
         <TitleText style={{ paddingTop: "3rem", fontSize: "2rem" }}>
           Meet new friends and enjoy virtual community space
@@ -200,12 +306,12 @@ export const MainPage: React.FC = () => {
               <CustomButton
                 label="Lobby"
                 type="submit"
-                onClick={managePublic}
+                onClick={handleOpenPDPAPublic}
               ></CustomButton>
               <CustomButton
                 label="Private"
                 type="submit"
-                onClick={managePrivate}
+                onClick={handleOpenPDPAPrivate}
               ></CustomButton>
             </Stack>
           </StyledButton>
