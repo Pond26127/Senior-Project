@@ -93,7 +93,7 @@ const ActionCard: React.FC<ActionCardProps> = ({ ...props }) => {
   const navigate = useNavigate();
 
   const handleJoinRoom = (id: any) => {
-    if (props.user.length == 4) {
+    if (props.user.length == 10) {
       console.log("Click Full");
       alert("This room is full!");
     } else {
@@ -109,7 +109,7 @@ const ActionCard: React.FC<ActionCardProps> = ({ ...props }) => {
     return (
       <StyledLeftContent>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          {props.user.length == 4 ? (
+          {props.user.length == 10 ? (
             <StatusChip status="Full" />
           ) : (
             <StatusChip status="Available" />
@@ -148,7 +148,7 @@ const ActionCard: React.FC<ActionCardProps> = ({ ...props }) => {
           {!props.isPrivate
             ? detailText("Type", "Public")
             : detailText("Type", "Private")}
-          {detailText("Total", props.user.length + "/4 People")}
+          {detailText("Total", props.user.length + "/10 People")}
           <ButtonBox>
             <ArrowForwardIos
               style={{ color: "grey", fontSize: "1.6rem" }}
