@@ -24,6 +24,8 @@ model Room {
   id String           @default(uuid()) @id
   name String         @default("Lobby")
   isPrivate Boolean   @default(false)
+  total Int?          @default(0)
+  capacity Int?
   note Note[]
   user User[]
   Message   Message[]

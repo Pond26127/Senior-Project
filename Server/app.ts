@@ -188,7 +188,7 @@ io.on('connection' , (socket)=> {
     socket.emit('peopleInRoom', users);
   });
 
-  socket.on('createRoom' , async(roomName , isPrivate) => {
+  socket.on('createRoom' , async(roomName , isPrivate ,capacity) => {
     if (!roomName || !socket.data.user){
       return;
     }
@@ -202,6 +202,7 @@ io.on('connection' , (socket)=> {
             id : socket.data.user.id,
           },
         },
+        capacity: capacity,
       },
     });
 
@@ -225,6 +226,9 @@ io.on('connection' , (socket)=> {
             id: socket.data.user.id,
           },
         },
+        total: {
+          increment: 1,
+        }
       },
     });
 
